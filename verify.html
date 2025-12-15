@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Verify your PROTECTHER Fire & Safety Management Institute certificate authenticity.">
+    <meta name="keywords" content="certificate verification, PROTECTHER, fire safety certificate">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <title>Certificate Verification | PROTECTHER</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .verify-section {
+            padding: 80px 0;
+            min-height: 60vh;
+        }
+        .verify-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .verify-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        .verify-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .verify-header i {
+            font-size: 60px;
+            color: #1C549D;
+            margin-bottom: 20px;
+        }
+        .verify-header h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        .verify-header p {
+            color: #666;
+        }
+        .verify-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .verify-form input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .verify-form input:focus {
+            outline: none;
+            border-color: #1C549D;
+        }
+        .verify-form button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #1C549D, #0d3a6e);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .verify-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(28, 84, 157, 0.4);
+        }
+        .verify-form button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result-container {
+            display: none;
+        }
+        .result-card {
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        .result-card.valid {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+        }
+        .result-card.invalid {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border: 2px solid #dc3545;
+        }
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .result-header i {
+            font-size: 40px;
+        }
+        .result-card.valid .result-header i {
+            color: #28a745;
+        }
+        .result-card.invalid .result-header i {
+            color: #dc3545;
+        }
+        .result-header h3 {
+            font-size: 22px;
+            margin: 0;
+        }
+        .result-card.valid .result-header h3 {
+            color: #155724;
+        }
+        .result-card.invalid .result-header h3 {
+            color: #721c24;
+        }
+        .cert-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .cert-detail-item {
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .cert-detail-item.full-width {
+            grid-column: span 2;
+        }
+        .cert-detail-item label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .cert-detail-item span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        .loading i {
+            font-size: 40px;
+            color: #1C549D;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .example-cert {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .example-cert p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .example-cert code {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #1C549D;
+        }
+        @media (max-width: 600px) {
+            .verify-form {
+                flex-direction: column;
+            }
+            .cert-details {
+                grid-template-columns: 1fr;
+            }
+            .cert-detail-item.full-width {
+                grid-column: span 1;
+            }
+        }
+        /* QR Scanner Styles */
+        .or-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: #666;
+        }
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .or-divider span {
+            padding: 0 15px;
+            font-weight: 500;
+        }
+        .scan-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+        .scan-btn i {
+            font-size: 20px;
+        }
+        #qr-reader {
+            display: none;
+            margin-top: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        #qr-reader.active {
+            display: block;
+        }
+        .scanner-container {
+            position: relative;
+        }
+        .close-scanner {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #qr-reader video {
+            border-radius: 12px;
+        }
+        .mobile-only {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <div class="top-bar-left">
+                    <span><i class="fas fa-phone-alt"></i> +91 8830024093</span>
+                    <span><i class="fas fa-envelope"></i> info@protecther.com</span>
+                </div>
+                <div class="top-bar-right">
+                    <a href="https://protecther.site/" target="_blank" class="top-link">Student Portal</a>
+                    <a href="verify.html" class="top-link">Verify Certificate</a>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/profile.php?id=100093077889265" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/protectherfireandsafety/" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.linkedin.com/company/protectherpfsmi/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.youtube.com/channel/UCH3buo5hAMoBqLk7xmQzV6A" target="_blank"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="images/PFASMI_logo.png" alt="PROTECTHER Fire & Safety Management Institute" class="logo-img">
+                </a>
+
+                <nav class="main-nav" id="mainNav">
+                    <ul class="nav-list">
+                        <li><a href="index.html" class="nav-link">Home</a></li>
+                        <li class="has-dropdown">
+                            <a href="about.html" class="nav-link">About Us <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown">
+                                <li><a href="about.html#about">Our Story</a></li>
+                                <li><a href="about.html#vision-mission">Vision & Mission</a></li>
+                                <li><a href="about.html#leadership">Leadership Team</a></li>
+                                <li><a href="about.html#affiliations">Affiliations</a></li>
+                                <li><a href="gallery.html">Gallery</a></li>
+                            </ul>
+                        </li>
+                        <li class="has-dropdown">
+                            <a href="courses.html" class="nav-link">Courses <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown">
+                                <li><a href="courses.html#autonomous">Autonomous Courses</a></li>
+                                <li><a href="courses.html#msbte">MSBTE Courses</a></li>
+                                <li><a href="courses.html#msbv">MSBV Courses</a></li>
+                                <li><a href="courses.html#certification">Certification Courses</a></li>
+                                <li><a href="courses.html">All Courses</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="certifications.html" class="nav-link">Certifications</a></li>
+                        <li><a href="admissions.html" class="nav-link">Admissions</a></li>
+                        <li><a href="placements.html" class="nav-link">Placements</a></li>
+                        <li><a href="contact.html" class="nav-link">Contact</a></li>
+                    </ul>
+                </nav>
+
+                <div class="header-actions">
+                    <a href="admissions.html#apply-form" class="btn btn-primary">Apply Now</a>
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Banner -->
+    <section class="page-banner">
+        <div class="container">
+            <h1>Certificate Verification</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span>/</span>
+                <span>Verify Certificate</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Verification Section -->
+    <section class="verify-section section-padding">
+        <div class="container">
+            <div class="verify-container">
+                <div class="verify-card">
+                    <div class="verify-header">
+                        <i class="fas fa-certificate"></i>
+                        <h1>Verify Your Certificate</h1>
+                        <p>Enter your certificate number to verify its authenticity</p>
+                    </div>
+
+                    <form class="verify-form" id="verifyForm">
+                        <input type="text" id="certNumber" placeholder="Enter Certificate Number" required>
+                        <button type="submit" id="verifyBtn">
+                            <i class="fas fa-search"></i> Verify
+                        </button>
+                    </form>
+
+                    <div class="example-cert">
+                        <p>Example: <code>PFMSI/2023/CERT/0011</code></p>
+                    </div>
+
+                    <!-- QR Scanner Section -->
+                    <div class="or-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <button type="button" class="scan-btn" id="scanBtn">
+                        <i class="fas fa-qrcode"></i> Scan QR Code
+                    </button>
+
+                    <div class="scanner-container">
+                        <div id="qr-reader"></div>
+                        <button type="button" class="close-scanner" id="closeScanner" style="display:none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="loading" id="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Verifying certificate...</p>
+                    </div>
+
+                    <div class="result-container" id="resultContainer">
+                        <!-- Result will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3 class="footer-brand">PROTECTHER</h3>
+                    <span class="footer-brand-tagline">Fire & Safety Management Institute</span>
+                    <p>PROTECTHER Fire & Safety Management Institute - Your trusted partner in safety education and career development.</p>
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/profile.php?id=100093077889265" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/protectherfireandsafety/" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.linkedin.com/company/protectherpfsmi/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.youtube.com/channel/UCH3buo5hAMoBqLk7xmQzV6A" target="_blank"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="courses.html">Our Courses</a></li>
+                        <li><a href="admissions.html">Admissions</a></li>
+                        <li><a href="placements.html">Placements</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Our Courses</h4>
+                    <ul>
+                        <li><a href="courses.html#autonomous">Autonomous Courses</a></li>
+                        <li><a href="courses.html#msbte">MSBTE Courses</a></li>
+                        <li><a href="courses.html#msbv">MSBV Courses</a></li>
+                        <li><a href="courses.html#certification">Certification Courses</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact Info</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>F 507, Mega Center, Magarpatta, Hadapsar, Pune 411013</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+                            <span>+91 8830024093 / 8888201419</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <span>info@protecther.com</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Our Websites</h4>
+                    <ul>
+                        <li><a href="https://protecther.site/" target="_blank">Student Portal</a></li>
+                        <li><a href="https://protecther.in/" target="_blank">PROTECTHER</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PROTECTHER Fire & Safety Management Institute. All Rights Reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/918830024093?text=Hi%2C%20I%20am%20interested%20in%20your%20Fire%20%26%20Safety%20courses.%20Please%20share%20more%20details." class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+        <span class="whatsapp-tooltip">Chat with us!</span>
+    </a>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw5YLs0XFhnIYhr2dD814GMxcLkV-zuesr5u8VKKm9GXT7ke1icnUxdPoiOQFa0dse7/exec';
+
+        document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const certNumber = document.getElementById('certNumber').value.trim();
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('resultContainer');
+            const verifyBtn = document.getElementById('verifyBtn');
+
+            if (!certNumber) {
+                alert('Please enter a certificate number');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+            verifyBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}?cert=${encodeURIComponent(certNumber)}`, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                const data = await response.json();
+
+                loading.style.display = 'none';
+                verifyBtn.disabled = false;
+                resultContainer.style.display = 'block';
+
+                if (data.found) {
+                    resultContainer.innerHTML = `
+                        <div class="result-card valid">
+                            <div class="result-header">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h3>Certificate Verified</h3>
+                                    <p style="margin:0;color:#155724;">This certificate is authentic and valid</p>
+                                </div>
+                            </div>
+                            <div class="cert-details">
+                                <div class="cert-detail-item">
+                                    <label>Certificate Number</label>
+                                    <span>${data.certificateNumber || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Issue Date</label>
+                                    <span>${data.date || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item full-width">
+                                    <label>Student Name</label>
+                                    <span>${data.studentName || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item full-width">
+                                    <label>Course / Subject</label>
+                                    <span>${data.course || data.subject || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Company</label>
+                                    <span>${data.companyName || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Designation</label>
+                                    <span>${data.designation || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Location</label>
+                                    <span>${data.location || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Duration</label>
+                                    <span>${data.duration || '-'}</span>
+                                </div>
+                                <div class="cert-detail-item">
+                                    <label>Validity</label>
+                                    <span>${data.validity || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultContainer.innerHTML = `
+                        <div class="result-card invalid">
+                            <div class="result-header">
+                                <i class="fas fa-times-circle"></i>
+                                <div>
+                                    <h3>Certificate Not Found</h3>
+                                    <p style="margin:0;color:#721c24;">No certificate found with this number</p>
+                                </div>
+                            </div>
+                            <p style="margin:15px 0 0;color:#721c24;">
+                                Please check the certificate number and try again. If you believe this is an error,
+                                please contact us at <a href="mailto:info@protecther.com" style="color:#721c24;font-weight:600;">info@protecther.com</a>
+                            </p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                verifyBtn.disabled = false;
+                resultContainer.style.display = 'block';
+                resultContainer.innerHTML = `
+                    <div class="result-card invalid">
+                        <div class="result-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <h3>Error</h3>
+                                <p style="margin:0;color:#721c24;">Unable to verify certificate. Please try again later.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // QR Code Scanner
+        let html5QrCode = null;
+        const scanBtn = document.getElementById('scanBtn');
+        const closeScanner = document.getElementById('closeScanner');
+        const qrReader = document.getElementById('qr-reader');
+
+        scanBtn.addEventListener('click', function() {
+            qrReader.classList.add('active');
+            closeScanner.style.display = 'block';
+            scanBtn.style.display = 'none';
+
+            html5QrCode = new Html5Qrcode("qr-reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                (decodedText) => {
+                    // QR Code scanned successfully
+                    document.getElementById('certNumber').value = decodedText;
+                    stopScanner();
+                    // Auto-submit the form
+                    document.getElementById('verifyForm').dispatchEvent(new Event('submit'));
+                },
+                (errorMessage) => {
+                    // Scan error - ignore, keep scanning
+                }
+            ).catch((err) => {
+                alert('Unable to access camera. Please ensure you have granted camera permissions.');
+                stopScanner();
+            });
+        });
+
+        closeScanner.addEventListener('click', stopScanner);
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    qrReader.classList.remove('active');
+                    closeScanner.style.display = 'none';
+                    scanBtn.style.display = 'flex';
+                }).catch((err) => {
+                    console.log('Error stopping scanner:', err);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
